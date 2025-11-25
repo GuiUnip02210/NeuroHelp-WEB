@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configurações - Sistema Desktop</title>
+    <link rel="stylesheet" href="style-desktop.css" />
+  </head>
+
+  <body>
+    <div class="app">
+
+
+      <div class="main" style="margin-left: 0; width: 100%;">
+        <header class="header">
+          <h1>Configurações</h1>
+        </header>
+
+        <section class="content">
+          <div class="card">
+            <h2>Preferências do Usuário</h2>
+            <p style="color: #64748b; margin-bottom: 20px">
+              Futuramente aqui serão adicionadas opções de tema e notificações.
+            </p>
+
+            <div class="theme-switcher-wrapper">
+              <label for="theme-toggle">Modo Escuro (Dark Mode)</label>
+              <label class="theme-switch">
+                <input type="checkbox" id="theme-toggle">
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <button id="btn-voltar-dashboard" class="btn btn-outline" style="margin-bottom: 10px;">
+              ⬅️ Voltar ao Painel
+            </button>
+
+            <button id="logout-btn" class="btn btn-danger">
+              Sair do Sistema
+            </button>
+          </div>
+        </section>
+
+        <footer class="footer">
+          © 2025 Neuro Help — Sistema de Chamados
+        </footer>
+      </div>
+    </div>
+
+    <script src="script-desktop.js"></script>
+  </body>
+</html>

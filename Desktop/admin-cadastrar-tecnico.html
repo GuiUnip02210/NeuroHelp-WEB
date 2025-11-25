@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastrar Novo Técnico - Sistema Desktop</title>
+    <link rel="stylesheet" href="style-desktop.css" />
+  </head>
+
+  <body>
+    <div class="app">
+      <!-- Sidebar fixa -->
+      <aside class="sidebar">
+        <img src="img/neurohelp-logo2.png" alt="Logo H2O" class="logo" />
+        <nav>
+          <a href="admin-dashboard-desktop.html">📊 Painel</a>
+          <a href="admin-tickets-desktop.html">📋 Chamados</a>
+          <a href="admin-cadastrar-tecnico.html">🧑‍🔧 Cadastrar Técnico</a>
+          <a href="config-desktop.html">⚙️ Configurações</a>
+          <a href="login-desktop.html" id="nav-logout">🚪 Sair</a>
+        </nav>
+      </aside>
+
+      <!-- Conteúdo principal -->
+      <div class="main">
+        <!-- Cabeçalho -->
+        <header class="header">
+          <h1>Cadastrar Novo Técnico</h1>
+          <div class="user-info">Bem-vindo(a)</div>          
+        </header>
+
+        <!-- Conteúdo -->
+        <section class="content">
+          <div class="card">
+            <h2 style="margin-bottom: 24px; text-align: center;">Registar Novo Técnico</h2>
+            
+            <!-- Formulário -->
+            <form id="register-tecnico-form">
+              <!-- Nome completo -->
+              <div class="form-group">
+                <label for="t-nome">Nome completo</label>
+                <input
+                  type="text"
+                  id="t-nome"
+                  name="t-nome"
+                  placeholder="Nome completo do técnico"
+                  required
+                  autocomplete="name"
+                />
+              </div>
+
+              <!-- E-mail -->
+              <div class="form-group">
+                <label for="t-email">E-mail</label>
+                <input
+                  type="email"
+                  id="t-email"
+                  name="t-email"
+                  placeholder="email@empresa.com"
+                  required
+                  autocomplete="email"
+                />
+              </div>
+
+              <!-- Senha -->
+              <div class="form-group password-wrapper">
+                <label for="t-senha">Senha</label>
+                <input
+                  type="password"
+                  id="t-senha"
+                  name="t-senha"
+                  placeholder="Digite a senha do técnico"
+                  required
+                  autocomplete="new-password"
+                />
+                <button
+                  type="button"
+                  class="toggle-btn"
+                  data-target="t-senha"
+                  title="Mostrar/ocultar senha"
+                >
+                  👁️
+                </button>
+              </div>
+
+              <!-- Confirmar Senha -->
+              <div class="form-group password-wrapper">
+                <label for="t-confirmar-senha">Confirmar senha</label>
+                <input
+                  type="password"
+                  id="t-confirmar-senha"
+                  name="t-confirmar-senha"
+                  placeholder="Repita a senha"
+                  required
+                  autocomplete="new-password"
+                />
+                <button
+                  type="button"
+                  class="toggle-btn"
+                  data-target="t-confirmar-senha"
+                  title="Mostrar/ocultar senha"
+                >
+                  👁️
+                </button>
+              </div>
+
+              <!-- Especialidade -->
+              <div class="form-group">
+                <label for="t-especialidade">Especialidade</label>
+                <select id="t-especialidade" name="t-especialidade" required>
+                  <option value="">Carregando especialidades...</option>
+                </select>
+              </div>
+
+              <!-- Botão de envio -->
+              <button type="submit" class="btn btn-primary" style="width: 100%">
+                Registar Técnico
+              </button>
+            </form>
+
+            <!-- Link para voltar -->
+            <p style="text-align: center; margin-top: 16px">
+              <a href="admin-dashboard-desktop.html" style="color: var(--primary-color); text-decoration: none;">
+                ← Voltar ao Painel Administrativo
+              </a>
+            </p>
+          </div>
+        </section>
+
+        <!-- Rodapé -->
+        <footer class="footer">
+          © 2025 Neuro Help — Painel Administrativo
+        </footer>
+      </div>
+    </div>
+
+    <script src="script-desktop.js"></script>
+  </body>
+</html>

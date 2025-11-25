@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel do Técnico - Sistema Desktop</title>
+    <link rel="stylesheet" href="style-desktop.css" />
+  </head>
+
+  <body>
+    <div class="app">
+      <!-- Sidebar fixa -->
+      <aside class="sidebar">
+        <img src="img/neurohelp-logo2.png" alt="Logo H2O" class="logo" />
+        <nav>
+          <a href="tecnico-dashboard.html" class="active">🔧 Painel Técnico</a>
+          <a href="tecnico-config-desktop.html">⚙️ Configurações</a>
+          <a href="#" id="nav-logout" onclick="sessionStorage.removeItem('authToken'); sessionStorage.removeItem('currentTicketId'); localStorage.removeItem('user'); window.location.href='/';;">🚪 Sair</a>
+        </nav>
+      </aside>
+
+      <!-- Conteúdo principal -->
+      <div class="main">
+        <!-- Cabeçalho -->
+        <header class="header">
+          <h1>Painel do Técnico</h1>
+          <div class="user-info">Bem-vindo(a)</div>
+        </header>
+
+        <!-- Conteúdo -->
+        <section class="content">
+          <!-- Primeiro Card: Novos Chamados (Fila de Atendimento) -->
+          <div class="card">
+            <h2>Novos Chamados (Fila de Atendimento)</h2>
+            <table class="table" id="tabela-fila-chamados">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Título</th>
+                  <th>Categoria</th>
+                  <th>Prioridade</th>
+                  <th>Data Abertura</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <!-- Segundo Card: Meus Chamados Atribuídos -->
+          <div class="card mt-32">
+            <h2>Meus Chamados Atribuídos</h2>
+            <table class="table" id="tabela-meus-chamados">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Título</th>
+                  <th>Categoria</th>
+                  <th>Status</th>
+                  <th>Prioridade</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Rodapé -->
+        <footer class="footer">
+          © 2025 Neuro Help — Painel do Técnico
+        </footer>
+      </div>
+    </div>
+
+    <script src="script-desktop.js"></script>
+  </body>
+</html>

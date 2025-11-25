@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detalhes do Chamado - Sistema Desktop</title>
+    <link rel="stylesheet" href="style-desktop.css" />
+  </head>
+
+  <body>
+    <div class="app">
+
+
+      <div class="main" style="margin-left: 0; width: 100%;">
+        <!-- Cabeçalho -->
+        <header class="header">
+          <h1>Detalhes do Chamado</h1>
+        </header>
+
+        <section class="content" id="ticket-view">
+          <!-- 🔙 Botão de voltar -->
+          <button
+            class="btn btn-outline"
+            style="margin-bottom: 16px"
+            onclick="goBack()"
+          >
+            ⬅️ Voltar
+          </button>
+
+          <!-- Bloco de detalhes -->
+          <div class="card">
+            <p><strong>ID:</strong> <span id="t-id">Carregando...</span></p>
+            <p><strong>Título:</strong> <span id="t-title">Carregando...</span></p>
+            <p><strong>Categoria:</strong> <span id="t-category">Carregando...</span></p>
+            <p><strong>Prioridade:</strong> <span id="t-priority">Carregando...</span></p>
+            <p><strong>Status:</strong> <span id="t-status">Carregando...</span></p>
+
+            <p><strong>Data de Abertura:</strong> <span id="t-data-abertura">Carregando...</span></p>
+            <p><strong>Última Atualização:</strong> <span id="t-data-atualizacao">Carregando...</span></p>
+            <p><strong>Prazo SLA:</strong> <span id="t-sla-expiracao">Carregando...</span></p>
+
+            <p><strong>Solicitante:</strong> <span id="t-solicitante">Carregando...</span></p>
+            <p><strong>Técnico:</strong> <span id="t-tecnico">Carregando...</span></p>
+            <p><strong>Descrição:</strong> <span id="t-desc">Carregando...</span></p>
+          </div>
+
+          <!-- Ações do Técnico -->
+          <div class="card" id="tecnico-actions">
+            <h2 style="margin-bottom: 10px">Ações do Técnico</h2>
+            <div class="form-group">
+              <label for="t-status-select">Alterar Status:</label>
+              <select id="t-status-select">
+                <option value="">Carregando status...</option>
+              </select>
+            </div>
+            <button id="btn-atualizar-status" class="btn btn-primary" style="margin-top: 10px;">
+              Atualizar Status
+            </button>
+          </div>
+
+          <!-- Comentários -->
+          <div class="card">
+            <h2 style="margin-bottom: 10px">Comentários</h2>
+            <ul id="comments" style="list-style: none; padding-left: 0"></ul>
+
+            <form id="comment-form" style="margin-top: 16px">
+              <textarea
+                id="comment-text"
+                rows="3"
+                placeholder="Adicionar comentário..."
+                required
+              ></textarea>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                style="margin-top: 10px"
+              >
+                Enviar
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <footer class="footer">
+          © 2025 Neuro Help — Sistema de Chamados
+        </footer>
+      </div>
+    </div>
+
+    <script src="script-desktop.js"></script>
+  </body>
+</html>
