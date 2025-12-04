@@ -179,4 +179,58 @@ public class HistoricoController : ControllerBase
             return StatusCode(500, new { message = "Erro interno do servidor ao consultar estatísticas" });
         }
     }
+
+    [HttpPost("inserir-dados-reais")]
+    [Authorize]
+    public async Task<IActionResult> InserirDadosReais()
+    {
+        try
+        {
+            // Verificar se o registro já existe
+            var existeRegistro = await _context.ChamadosHistorico
+                .AnyAsync(c => c.IdDoCaso == 2189);
+
+            if (existeRegistro)
+            {
+                return BadRequest("Registro com ID 2189 já existe");
+            }
+
+            var dadoReal = new ChamadoHistorico
+            {
+                IdDoCaso = 2189,
+                Tipo = "Solicitação",
+                Resumo = "Reset de Senha",
+                Descricao = "Solicitação de reset de senha para e-mail nominal: marcos.gouveia",
+                DataAbertura = new DateTime(2019, 4, 29, 7, 4, 19, DateTimeKind.Utc),
+                Prioridade = "NORMAL",
+                Categoria = "INFRAESTRUTURA.SERVIDOR.ACTIVE DIRECTORY.RESET DE SENHA.ELEGIVEL",
+                Status = "ENCERRADO",
+                Atribuido = "",
+                GrupoAtribuido = "SDX SERVICE DESK N1 TELEFONE",
+                LocalizacaoAfetada = "51645-VALE PORTO – MANUT PREDIAL E HVAC",
+                DataResolucao = new DateTime(2019, 4, 29, 7, 6, 42, DateTimeKind.Utc),
+                ViolacaoProjetada = new DateTime(2019, 4, 29, 10, 4, 19, DateTimeKind.Utc),
+                RelatadoPor = "Marcos Santos Goveia",
+                MetodoRelatado = "Outros",
+                CategoriaReporte = "INFRAESTRUTURA.SERVIDOR.ACTIVE DIRECTORY.RESET DE SENHA.ELEGIVEL",
+                UltimaModificacao = new DateTime(2019, 5, 7, 7, 36, 42, DateTimeKind.Utc),
+                UsuarioFinalAfetado = "Marcos Santos Goveia",
+                EmailUsuarioFinal = "marcos.xxx@soxxxo.com",
+                CpfUsuarioFinal = "516xxxx",
+                DescricaoSolucao = "Efetuado reset de senha de e-mail nominal para: marcos.gouveia"
+            };
+
+            _context.ChamadosHistorico.Add(dadoReal);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Dados reais inseridos com sucesso - ID: {IdDoCaso}", dadoReal.IdDoCaso);
+
+            return Ok(new { message = "Dados reais inseridos com sucesso", id = dadoReal.IdDoCaso });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao inserir dados reais");
+            return StatusCode(500, "Erro interno do servidor");
+        }
+    }
 }

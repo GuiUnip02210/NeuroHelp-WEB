@@ -1,214 +1,257 @@
-# Sistema de Chamados Histórico - Somente Leitura
+# Sistema de Chamados Histórico
 
-## 📋 Descrição
+Sistema de consulta somente leitura para dados históricos de chamados descontinuados.
 
-O **SistemaChamadosHistorico** é um aplicativo web de consulta e arquivamento de dados históricos de chamados de um sistema descontinuado. O sistema oferece acesso seguro e restrito apenas para visualização de dados, com funcionalidades de login, registro de usuários e consulta de histórico.
+## 🚀 Tecnologias Utilizadas
 
-## 🏗️ Arquitetura
+- **Backend:** ASP.NET Core 8 Web API
+- **Frontend:** HTML, CSS, JavaScript
+- **Banco de Dados:** PostgreSQL
+- **Autenticação:** JWT (JSON Web Tokens)
 
-- **Backend**: C# ASP.NET Core 8 Web API
-- **Frontend**: HTML/CSS/JavaScript (servido estaticamente)
-- **Banco de Dados**: PostgreSQL
-- **Autenticação**: JWT (JSON Web Tokens)
-- **Criptografia**: BCrypt para senhas
+## ✨ Funcionalidades
 
-## 🚀 Funcionalidades
+- ✅ **Login e Registro de Usuários**
+- ✅ **Consulta de Dados Históricos** (somente leitura)
+- ✅ **Filtros de Pesquisa** (ID, Resumo, Descrição, Categoria, Status, Prioridade, Data)
+- ✅ **Visualização Detalhada** em modal
+- ✅ **Paginação** de resultados
+- ✅ **Interface Responsiva**
 
-### ✅ Implementadas
-- **Login de usuários** com autenticação JWT
-- **Registro de novos usuários** (perfil único de Visualizador)
-- **Consulta de histórico** de chamados com filtros avançados
-- **Visualização detalhada** de chamados em modal
-- **Paginação** e estatísticas dos dados
-- **Interface responsiva** e intuitiva
+## 🗄️ Estrutura do Banco de Dados
 
-### 🔒 Segurança
-- Todas as rotas de dados protegidas por autenticação
-- Senhas criptografadas com BCrypt
-- Tokens JWT com expiração configurável
-- Validação de entrada em todos os endpoints
+### Tabela: Usuarios
+- Id (PK)
+- Email
+- SenhaHash
+- NomeCompleto
+- TipoUsuario (sempre 1 - Visualizador)
+- DataCriacao
 
-## 📊 Modelo de Dados
+### Tabela: HISTORICO_CHAMADOS (21 campos)
+- ID_DO_CASO (PK)
+- TIPO
+- RESUMO
+- DESCRICAO
+- DATA_ABERTURA
+- PRIORIDADE
+- CATEGORIA
+- STATUS
+- ATRIBUIDO
+- GRUPO_ATRIBUIDO
+- LOCALIZACAO_AFETADA
+- DATA_RESOLUCAO
+- VIOLACAO_PROJETADA
+- RELATADO_POR
+- METODO_RELATADO
+- CATEGORIA_REPORTE
+- ULTIMA_MODIFICACAO
+- USUARIO_FINAL_AFETADO
+- EMAIL_USUARIO_FINAL
+- CPF_USUARIO_FINAL
+- DESCRICAO_SOLUCAO
 
-### Tabela: `ChamadoHistorico` (21 campos)
-- **ID_DO_CASO** (int) - Chave primária
-- **TIPO** (string) - Tipo do chamado
-- **RESUMO** (string) - Resumo do problema
-- **DESCRICAO** (string) - Descrição detalhada
-- **DATA_ABERTURA** (DateTime) - Data de abertura
-- **PRIORIDADE** (string) - Nível de prioridade
-- **CATEGORIA** (string) - Categoria do chamado
-- **STATUS** (string) - Status atual
-- **ATRIBUIDO** (string) - Responsável
-- **GRUPO_ATRIBUIDO** (string) - Grupo responsável
-- **LOCALIZACAO_AFETADA** (string) - Local afetado
-- **DATA_RESOLUCAO** (DateTime?) - Data de resolução
-- **VIOLACAO_PROJETADA** (DateTime?) - Violação projetada
-- **RELATADO_POR** (string) - Quem relatou
-- **METODO_RELATADO** (string) - Como foi relatado
-- **CATEGORIA_REPORTE** (string) - Categoria do reporte
-- **ULTIMA_MODIFICACAO** (DateTime?) - Última modificação
-- **USUARIO_FINAL_AFETADO** (string) - Usuário afetado
-- **EMAIL_USUARIO_FINAL** (string) - Email do usuário
-- **CPF_USUARIO_FINAL** (string) - CPF do usuário
-- **DESCRICAO_SOLUCAO** (string) - Descrição da solução
-
-### Tabela: `Usuarios`
-- **Id** (int) - Chave primária
-- **Email** (string) - Email único
-- **SenhaHash** (string) - Senha criptografada
-- **NomeCompleto** (string) - Nome completo
-- **DataCadastro** (DateTime) - Data de cadastro
-- **Ativo** (bool) - Status ativo
-
-## 🛠️ Instalação e Configuração
+## ⚙️ Configuração e Instalação
 
 ### Pré-requisitos
 - .NET 8 SDK
 - PostgreSQL 12+
-- Git (opcional)
+- Git
 
-### 1. Configuração do Banco de Dados
+### 🔧 Instalação Automática
 
-```sql
--- Criar banco de dados
-CREATE DATABASE sistema_chamados_historico;
+#### Linux/Mac:
+```bash
+# 1. Clone o repositório
+git clone <url-do-repositorio>
+cd NeuroHelp-WEB
+git checkout CA-Antigo
 
--- Conectar ao banco e executar o script de criação das tabelas
--- (O script está incluído em Scripts/CreateDatabase.sql)
+# 2. Execute o script de setup (cria banco e tabelas automaticamente)
+chmod +x Scripts/setup_database.sh
+./Scripts/setup_database.sh
+
+# 3. Restaure as dependências
+dotnet restore
+
+# 4. Execute a aplicação
+dotnet run
 ```
 
-### 2. Configuração da Aplicação
+#### Windows:
+```cmd
+# 1. Clone o repositório
+git clone <url-do-repositorio>
+cd NeuroHelp-WEB
+git checkout CA-Antigo
 
-1. **Extrair o projeto**:
+# 2. Execute o script de setup (cria banco e tabelas automaticamente)
+Scripts\setup_database.bat
+
+# 3. Restaure as dependências
+dotnet restore
+
+# 4. Execute a aplicação
+dotnet run
+```
+
+### 🔧 Instalação Manual
+
+Se preferir configurar manualmente:
+
+1. **Criar banco PostgreSQL:**
+   ```sql
+   CREATE DATABASE sistema_chamados_historico;
+   CREATE USER admin WITH PASSWORD 'admin123';
+   GRANT ALL PRIVILEGES ON DATABASE sistema_chamados_historico TO admin;
+   ```
+
+2. **Executar script SQL:**
    ```bash
-   unzip SistemaChamadosHistorico.zip
-   cd NeuroHelp-WEB
+   PGPASSWORD=admin123 psql -h localhost -U admin -d sistema_chamados_historico -f Scripts/create_database.sql
    ```
 
-2. **Configurar string de conexão** em `appsettings.json`:
-   ```json
-   {
-     "ConnectionStrings": {
-       "DefaultConnection": "Host=localhost;Database=sistema_chamados_historico;Username=seu_usuario;Password=sua_senha"
-     }
-   }
-   ```
-
-3. **Restaurar dependências**:
+3. **Configurar aplicação:**
    ```bash
    dotnet restore
+   dotnet run
    ```
 
-4. **Executar migrações** (se necessário):
-   ```bash
-   dotnet ef database update
-   ```
+### 🌐 Acesso ao Sistema
 
-### 3. Executar a Aplicação
+- **URL:** http://localhost:5000
+- **Usuário padrão:** admin@historico.com
+- **Senha:** admin123
 
-```bash
-dotnet run --project SistemaChamados.csproj --urls=http://localhost:5000
-```
-
-A aplicação estará disponível em: `http://localhost:5000`
-
-## 📱 Como Usar
-
-### 1. Primeiro Acesso
-1. Acesse `http://localhost:5000`
-2. Clique em "Criar conta"
-3. Preencha os dados de registro
-4. Faça login com as credenciais criadas
-
-### 2. Navegação
-- **Catálogo Histórico**: Visualizar todos os chamados históricos
-- **Filtros**: Pesquisar por ID, resumo, descrição, categoria, status, prioridade e datas
-- **Detalhes**: Clicar em "👁️ Ver" para visualizar informações completas
-- **Paginação**: Navegar entre páginas de resultados
-
-### 3. Funcionalidades de Filtro
-- **ID do Caso**: Busca exata por número
-- **Resumo/Descrição**: Busca textual parcial
-- **Categoria**: Filtro por dropdown
-- **Status**: Filtro por dropdown
-- **Prioridade**: Filtro por dropdown
-- **Datas**: Filtro por período de abertura
-
-## 🔧 Estrutura do Projeto
+## 📁 Estrutura do Projeto
 
 ```
 NeuroHelp-WEB/
-├── API/
-│   └── Controllers/
-│       ├── UsuariosController.cs      # Login e registro
-│       └── HistoricoController.cs     # Consulta de histórico
-├── Application/
+├── Controllers/
+│   ├── UsuariosController.cs      # Login e registro
+│   └── HistoricoController.cs     # Consulta histórico
+├── Core/
+│   ├── Entities/
+│   │   ├── Usuario.cs             # Modelo de usuário
+│   │   └── ChamadoHistorico.cs    # Modelo histórico (21 campos)
 │   └── Services/
-│       ├── ITokenService.cs           # Interface JWT
-│       └── TokenService.cs            # Implementação JWT
+│       └── ITokenService.cs       # Interface JWT
 ├── Data/
-│   └── ApplicationDbContext.cs        # Contexto EF Core
-├── SistemaChamados.Shared/
-│   ├── DTOs/                          # Objetos de transferência
-│   └── Entities/                      # Modelos de dados
-├── wwwroot/                           # Frontend estático
-│   ├── index.html                     # Página de login
-│   ├── cadastro-desktop.html          # Página de registro
-│   ├── user-dashboard-historico.html  # Dashboard principal
-│   ├── script-desktop.js              # JavaScript principal
-│   └── style-desktop.css              # Estilos CSS
+│   └── ApplicationDbContext.cs    # Contexto EF Core
+├── Services/
+│   └── TokenService.cs            # Implementação JWT
+├── wwwroot/
+│   ├── index.html                 # Página de login
+│   ├── cadastro-desktop.html      # Página de registro
+│   ├── user-dashboard-historico.html # Dashboard principal
+│   ├── css/                       # Estilos
+│   ├── js/                        # Scripts JavaScript
+│   └── img/                       # Imagens
 ├── Scripts/
-│   └── CreateDatabase.sql             # Script de criação do BD
-└── appsettings.json                   # Configurações
+│   ├── create_database.sql        # Script criação tabelas
+│   ├── setup_database.sh          # Setup Linux/Mac
+│   └── setup_database.bat         # Setup Windows
+└── README_SISTEMA_HISTORICO.md
 ```
 
-## 🧪 Dados de Teste
+## 🔌 API Endpoints
 
-O sistema inclui 5 registros de exemplo na tabela `HISTORICO_CHAMADOS`:
+### Autenticação
+- `POST /api/usuarios/login` - Login do usuário
+- `POST /api/usuarios/registrar` - Registro de novo usuário
 
-1. **ID 1**: Sistema lento na rede corporativa (Infraestrutura, Alta prioridade)
-2. **ID 2**: Criação de nova conta de usuário (Acesso, Média prioridade)
-3. **ID 3**: Impressora não funciona (Hardware, Baixa prioridade)
-4. **ID 4**: Falha no backup automático (Backup, Crítica prioridade)
-5. **ID 5**: Instalação de software (Software, Média prioridade)
+### Histórico (Protegido por JWT)
+- `GET /api/historico` - Lista todos os chamados históricos
+- `GET /api/historico?id={id}` - Busca por ID específico
+- `GET /api/historico?resumo={texto}` - Busca por resumo
+- `GET /api/historico?descricao={texto}` - Busca por descrição
 
-## 🔐 Segurança
+### Exemplo de Uso da API:
+```bash
+# 1. Login
+curl -X POST http://localhost:5000/api/usuarios/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@historico.com","senha":"admin123"}'
 
-- **Autenticação obrigatória** para todas as funcionalidades
-- **Senhas criptografadas** com BCrypt
-- **Tokens JWT** com expiração configurável
-- **Validação de entrada** em todos os endpoints
-- **Acesso somente leitura** aos dados históricos
+# 2. Usar token retornado
+curl -X GET http://localhost:5000/api/historico \
+  -H "Authorization: Bearer SEU_TOKEN_JWT"
+```
 
-## 🐛 Solução de Problemas
+## 🔒 Segurança
 
-### Erro de Conexão com Banco
-- Verificar se o PostgreSQL está rodando
-- Confirmar credenciais na string de conexão
-- Verificar se o banco de dados existe
+- ✅ **Autenticação JWT obrigatória** para todos os endpoints de dados
+- ✅ **Senhas criptografadas** com BCrypt
+- ✅ **Validação de entrada** de dados
+- ✅ **CORS configurado** adequadamente
+- ✅ **Sistema somente leitura** (sem operações de escrita nos dados históricos)
+- ✅ **Proteção contra SQL Injection** via Entity Framework
 
-### Erro de Autenticação
-- Verificar se o JWT está configurado corretamente
-- Confirmar se o usuário está ativo no banco
+## 🛠️ Scripts Disponíveis
 
-### Problemas de Frontend
-- Verificar se os arquivos estão em `wwwroot/`
-- Confirmar se a API está respondendo nas rotas corretas
+### Scripts de Banco de Dados:
+- `Scripts/create_database.sql` - Cria tabelas e usuário padrão
+- `Scripts/setup_database.sh` - Setup completo Linux/Mac
+- `Scripts/setup_database.bat` - Setup completo Windows
+
+### Comandos .NET:
+```bash
+dotnet restore          # Restaurar dependências
+dotnet build           # Compilar projeto
+dotnet run             # Executar aplicação
+dotnet clean           # Limpar build
+```
+
+## 📊 Dados de Exemplo
+
+O sistema inclui um usuário administrador padrão:
+- **Email:** admin@historico.com
+- **Senha:** admin123
+
+Para inserir dados históricos, use o endpoint POST (disponível apenas para desenvolvimento):
+```bash
+curl -X POST http://localhost:5000/api/historico/inserir-dados-reais \
+  -H "Authorization: Bearer SEU_TOKEN_JWT"
+```
+
+## 🚨 Troubleshooting
+
+### Problemas Comuns:
+
+1. **Erro de conexão com PostgreSQL:**
+   - Verifique se o PostgreSQL está rodando
+   - Confirme as credenciais no `appsettings.json`
+
+2. **Porta já em uso:**
+   - Altere a porta no `launchSettings.json`
+   - Ou use: `dotnet run --urls="http://localhost:NOVA_PORTA"`
+
+3. **Erro de autenticação:**
+   - Verifique se o token JWT não expirou
+   - Confirme se o usuário foi criado corretamente
+
+4. **Tabelas não encontradas:**
+   - Execute novamente o script `create_database.sql`
+   - Verifique se o banco foi criado corretamente
+
+## 🎯 Desenvolvimento
+
+Este sistema foi desenvolvido especificamente para consulta de dados históricos de um sistema descontinuado. 
+
+**Características importantes:**
+- ✅ **Somente leitura:** Não permite criação, edição ou exclusão de chamados
+- ✅ **Seguro:** Todos os endpoints de dados requerem autenticação
+- ✅ **Simples:** Interface limpa focada na consulta de dados
+- ✅ **Completo:** Exibe todos os 21 campos dos dados históricos
 
 ## 📞 Suporte
 
 Para dúvidas ou problemas:
-1. Verificar logs da aplicação
-2. Consultar documentação do .NET Core
-3. Verificar configurações do PostgreSQL
-
-## 📄 Licença
-
-Sistema desenvolvido para fins acadêmicos e de arquivamento histórico.
+1. Consulte este README
+2. Verifique os logs da aplicação
+3. Execute os scripts de troubleshooting
+4. Entre em contato com a equipe de desenvolvimento
 
 ---
 
-**Versão**: 1.0  
-**Data**: Dezembro 2024  
-**Tecnologias**: .NET 8, PostgreSQL, HTML/CSS/JS
+**Sistema de Chamados Histórico v1.0** - Desenvolvido para consulta segura de dados históricos.

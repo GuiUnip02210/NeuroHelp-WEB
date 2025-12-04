@@ -388,3 +388,8 @@ server.log
 
 # Arquivos temporários do Microsoft
 packages-microsoft-prod.deb
+
+# Custom additions for Sistema Chamados Histórico
+.browser_screenshots/
+sessions/
+SistemaChamadosHistorico.zip
