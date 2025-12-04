@@ -19,21 +19,8 @@ public class Usuario
     public string SenhaHash { get; set; } = string.Empty;
     
     [Required]
-    public int TipoUsuario { get; set; } // 1 para Aluno, 2 para Professor, 3 para Admin
-    
-    [Required]
-    public DateTime DataCadastro { get; set; } = DateTime.Now;
+    public DateTime DataCadastro { get; set; } = DateTime.UtcNow;
     
     [Required]
     public bool Ativo { get; set; } = true;
-
-    public int? EspecialidadeCategoriaId { get; set; }
-    
-    // Campos para reset de senha
-    [MaxLength(128)]
-    public string? PasswordResetToken { get; set; }
-    
-    public DateTime? ResetTokenExpires { get; set; }
-    
-    // Propriedades de navegação (AlunoPerfil e ProfessorPerfil removidos)
 }

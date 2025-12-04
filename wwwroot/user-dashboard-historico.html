@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Histórico de Chamados - Sistema Desktop</title>
+    <link rel="stylesheet" href="style-desktop.css" />
+  </head>
+
+  <body>
+    <div class="app">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <img src="img/neurohelp-logo2.png" alt="Logo NeuroHelp" class="logo" />
+        <nav>
+          <a href="user-dashboard-historico.html" class="active">📋 Catálogo Histórico</a>
+          <a href="config-desktop.html">⚙️ Configurações</a>
+          <a href="#" id="nav-logout" onclick="sessionStorage.removeItem('authToken'); sessionStorage.removeItem('currentTicketId'); localStorage.removeItem('user'); window.location.href='/';;">🚪 Sair</a>
+        </nav>
+      </aside>
+
+      <!-- Área principal -->
+      <div class="main">
+        <!-- Cabeçalho -->
+        <header class="header">
+          <h1>Histórico de Chamados</h1>
+          <div class="user-info">Sistema Somente Leitura</div>
+        </header>
+
+        <!-- Filtros -->
+        <section class="filters">
+          <div class="card">
+            <h3>Filtros de Pesquisa</h3>
+            <div class="filter-row">
+              <input type="number" id="filter-id" placeholder="ID do Caso" />
+              <input type="text" id="filter-resumo" placeholder="Resumo" />
+              <input type="text" id="filter-descricao" placeholder="Descrição" />
+              <select id="filter-categoria">
+                <option value="">Todas as Categorias</option>
+              </select>
+            </div>
+            <div class="filter-row">
+              <select id="filter-status">
+                <option value="">Todos os Status</option>
+              </select>
+              <select id="filter-prioridade">
+                <option value="">Todas as Prioridades</option>
+              </select>
+              <input type="date" id="filter-data-inicio" />
+              <input type="date" id="filter-data-fim" />
+            </div>
+            <div class="filter-actions">
+              <button id="btn-filtrar" class="btn btn-primary">🔍 Filtrar</button>
+              <button id="btn-limpar" class="btn btn-secondary">🗑️ Limpar</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Estatísticas -->
+        <section class="stats">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <h4>Total de Chamados</h4>
+              <span id="stat-total">-</span>
+            </div>
+            <div class="stat-card">
+              <h4>Página Atual</h4>
+              <span id="stat-page">-</span>
+            </div>
+            <div class="stat-card">
+              <h4>Total de Páginas</h4>
+              <span id="stat-total-pages">-</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Conteúdo -->
+        <section class="content">
+          <div class="card">
+            <div class="table-header">
+              <h3>Registros Históricos</h3>
+              <div class="pagination-controls">
+                <button id="btn-prev-page" class="btn btn-small">← Anterior</button>
+                <span id="page-info">Página 1</span>
+                <button id="btn-next-page" class="btn btn-small">Próxima →</button>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="table" id="historico-table">
+                <thead>
+                  <tr>
+                    <th>ID do Caso</th>
+                    <th>Tipo</th>
+                    <th>Resumo</th>
+                    <th>Categoria</th>
+                    <th>Status</th>
+                    <th>Prioridade</th>
+                    <th>Data Abertura</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="historico-tbody">
+                  <tr>
+                    <td colspan="8" class="loading">Carregando dados...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Modal de Detalhes -->
+        <div id="modal-detalhes" class="modal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>Detalhes do Chamado</h3>
+              <span class="close" id="modal-close">&times;</span>
+            </div>
+            <div class="modal-body" id="modal-body">
+              <!-- Conteúdo será preenchido dinamicamente -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Rodapé -->
+        <footer class="footer">
+          <p>&copy; 2024 Sistema de Chamados Histórico - Somente Leitura</p>
+        </footer>
+      </div>
+    </div>
+
+    <script src="script-desktop.js"></script>
+    <script>
+      // Inicializar o visualizador de histórico quando a página carregar
+      document.addEventListener('DOMContentLoaded', function() {
+        initHistoricoViewer();
+      });
+    </script>
+  </body>
+</html>

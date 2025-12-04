@@ -25,7 +25,7 @@ public class TokenService : ITokenService
             new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
             new Claim(ClaimTypes.Email, usuario.Email),
             new Claim(ClaimTypes.Name, usuario.NomeCompleto),
-            new Claim("TipoUsuario", usuario.TipoUsuario.ToString())
+            new Claim("TipoUsuario", "1") // Sempre 1 para todos os usuários
         };
 
         var token = new JwtSecurityToken(

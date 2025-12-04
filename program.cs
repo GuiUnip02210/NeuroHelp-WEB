@@ -3,9 +3,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SistemaChamados.Application.Services;
-using SistemaChamados.Services;
 using SistemaChamados.Data;
-using SistemaChamados.Configuration;
 using SistemaChamados.Shared.Entities;
 using System.Text;
 
@@ -19,25 +17,15 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 if (string.IsNullOrEmpty(connectionString))
 {
     // Se a string de conexão estiver vazia, lance uma exceção clara.
-    throw new InvalidOperationException("A string de conexão 'DefaultConnection' não está configurada. Configure o SQL Server no appsettings.json.");
+    throw new InvalidOperationException("A string de conexão 'DefaultConnection' não está configurada. Configure o PostgreSQL no appsettings.json.");
 }
 
-// Configuração forçada para o SQL Server
+// Configuração para PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseNpgsql(connectionString));
     
 // Registrar serviços
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IOpenAIService, OpenAIService>();
-
-// Configurar HttpClient para o OpenAIService
-builder.Services.AddHttpClient<IOpenAIService, OpenAIService>();
-
-// Configura a seção EmailSettings do appsettings.json
-builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-
-// Registra o EmailService para injeção de dependência
-builder.Services.AddTransient<IEmailService, EmailService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -76,11 +64,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
         };
     });
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("AdminOnly", policy =>
-        policy.RequireClaim("TipoUsuario", "3"));
-});
+builder.Services.AddAuthorization();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -121,38 +105,18 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     
-    // Adicionar dados de seed apenas se não existirem
+    // Garantir que o banco de dados seja criado
+    context.Database.EnsureCreated();
+    
+    // Adicionar usuário admin padrão se não existir
     if (!context.Usuarios.Any())
     {
-        // Criar status
-        var statusAberto = new Status { Nome = "Aberto" };
-        var statusAndamento = new Status { Nome = "Em Andamento" };
-        var statusFechado = new Status { Nome = "Fechado" };
-        
-        context.Status.AddRange(statusAberto, statusAndamento, statusFechado);
-        
-        // Criar prioridades
-        var prioridadeBaixa = new Prioridade { Nome = "Baixa" };
-        var prioridadeMedia = new Prioridade { Nome = "Média" };
-        var prioridadeAlta = new Prioridade { Nome = "Alta" };
-        
-        context.Prioridades.AddRange(prioridadeBaixa, prioridadeMedia, prioridadeAlta);
-        
-        // Criar categorias
-        var categoriaHardware = new Categoria { Nome = "Hardware", Descricao = "Problemas relacionados a equipamentos" };
-        var categoriaSoftware = new Categoria { Nome = "Software", Descricao = "Problemas relacionados a programas" };
-        var categoriaRede = new Categoria { Nome = "Rede", Descricao = "Problemas relacionados à conectividade" };
-        
-        context.Categorias.AddRange(categoriaHardware, categoriaSoftware, categoriaRede);
-        
-        // Criar usuário admin
         var adminUser = new Usuario
         {
-            NomeCompleto = "Administrador",
-            Email = "admin@helpdesk.com",
-            SenhaHash = BCrypt.Net.BCrypt.HashPassword("senha123"),
-            TipoUsuario = 3, // Admin
-            DataCadastro = DateTime.Now,
+            NomeCompleto = "Administrador do Sistema",
+            Email = "admin@historico.com",
+            SenhaHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
+            DataCadastro = DateTime.UtcNow,
             Ativo = true
         };
         

@@ -145,7 +145,7 @@ function initLogin() {
         } else if (data.tipoUsuario === 2) { // Técnico
           window.location.href = "tecnico-dashboard.html"; // <-- Redirecionamento CORRETO para técnico
         } else { // Usuário Comum (TipoUsuario 1 ou outro)
-          window.location.href = "user-dashboard-desktop.html";
+          window.location.href = "user-dashboard-historico.html";
         }
       } else {
         // Tratar erro de autenticação
@@ -1043,14 +1043,8 @@ function initConfig() {
       if (payload && payload[tipoUsuarioClaim]) {
         tipoUsuario = parseInt(payload[tipoUsuarioClaim]);
       }
-      // Redireciona com base no TipoUsuario lido do token
-      if (tipoUsuario === 3) {
-        go("admin-dashboard-desktop.html");
-      } else if (tipoUsuario === 2) {
-        go("tecnico-dashboard.html");
-      } else {
-        go("user-dashboard-desktop.html");
-      }
+      // Redireciona para o dashboard de histórico (todos os usuários têm o mesmo perfil)
+      go("user-dashboard-historico.html");
     });
   }
 }
@@ -1857,6 +1851,531 @@ document.addEventListener("DOMContentLoaded", () => {
   } else if (path.endsWith("admin-tickets-desktop.html")) { // <-- ADICIONAR ESTE BLOCO
     initAdminTicketsPage();
     initConfig(); // Para o logout funcionar
+  } else if (path.endsWith("user-dashboard-historico.html")) {
+    initHistoricoViewer();
+    initConfig(); // Para o logout funcionar
+    atualizarSaudacaoUsuario();
   }
 });
+
+/* ===========================================================
+   📋 SISTEMA DE HISTÓRICO DE CHAMADOS (SOMENTE LEITURA)
+   =========================================================== */
+
+let currentPage = 1;
+let pageSize = 50;
+let totalPages = 1;
+let currentFilters = {};
+
+/**
+ * Inicializa o visualizador de histórico
+ */
+function initHistoricoViewer() {
+  console.log('🔧 Inicializando visualizador de histórico...');
+  
+  // Verificar autenticação
+  const token = sessionStorage.getItem('authToken');
+  if (!token) {
+    toast('Você precisa estar logado para acessar o histórico.');
+    window.location.href = '/';
+    return;
+  }
+
+  // Configurar event listeners
+  setupHistoricoEventListeners();
+  
+  // Carregar dados iniciais
+  loadHistoricoData();
+  loadEstatisticas();
+}
+
+/**
+ * Configura os event listeners para o histórico
+ */
+function setupHistoricoEventListeners() {
+  // Botões de filtro
+  const btnFiltrar = $('#btn-filtrar');
+  const btnLimpar = $('#btn-limpar');
+  
+  if (btnFiltrar) {
+    btnFiltrar.addEventListener('click', aplicarFiltros);
+  }
+  
+  if (btnLimpar) {
+    btnLimpar.addEventListener('click', limparFiltros);
+  }
+
+  // Paginação
+  const btnPrevPage = $('#btn-prev-page');
+  const btnNextPage = $('#btn-next-page');
+  
+  if (btnPrevPage) {
+    btnPrevPage.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        loadHistoricoData();
+      }
+    });
+  }
+  
+  if (btnNextPage) {
+    btnNextPage.addEventListener('click', () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        loadHistoricoData();
+      }
+    });
+  }
+
+  // Modal de detalhes
+  const modalClose = $('#modal-close');
+  const modal = $('#modal-detalhes');
+  
+  if (modalClose && modal) {
+    modalClose.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+    
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+  }
+
+  // Filtros com debounce para campos de texto
+  const filterInputs = ['#filter-resumo', '#filter-descricao'];
+  filterInputs.forEach(selector => {
+    const input = $(selector);
+    if (input) {
+      input.addEventListener('input', debounce(() => {
+        aplicarFiltros();
+      }, 500));
+    }
+  });
+}
+
+/**
+ * Carrega os dados do histórico
+ */
+async function loadHistoricoData() {
+  const token = sessionStorage.getItem('authToken');
+  const tbody = $('#historico-tbody');
+  
+  if (!tbody) return;
+  
+  try {
+    // Mostrar loading
+    tbody.innerHTML = '<tr><td colspan="8" class="loading">Carregando dados...</td></tr>';
+    
+    // Construir URL com filtros e paginação
+    const params = new URLSearchParams({
+      page: currentPage,
+      pageSize: pageSize,
+      ...currentFilters
+    });
+    
+    const response = await fetch(`/api/historico?${params}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    // Atualizar informações de paginação
+    totalPages = data.totalPages || 1;
+    updatePaginationInfo(data);
+    
+    // Renderizar dados
+    renderHistoricoTable(data.data || []);
+    
+  } catch (error) {
+    console.error('Erro ao carregar histórico:', error);
+    tbody.innerHTML = '<tr><td colspan="8" class="error">Erro ao carregar dados. Tente novamente.</td></tr>';
+    toast('Erro ao carregar dados do histórico.');
+  }
+}
+
+/**
+ * Renderiza a tabela de histórico
+ */
+function renderHistoricoTable(historicos) {
+  const tbody = $('#historico-tbody');
+  if (!tbody) return;
+  
+  if (historicos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="no-data">Nenhum registro encontrado.</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = historicos.map(item => `
+    <tr>
+      <td>${item.idDoCaso || '-'}</td>
+      <td>${item.tipo || '-'}</td>
+      <td class="resumo-cell" title="${item.resumo || ''}">${truncateText(item.resumo, 50)}</td>
+      <td>${item.categoria || '-'}</td>
+      <td><span class="status-badge status-${getStatusClass(item.status)}">${item.status || '-'}</span></td>
+      <td><span class="priority-badge priority-${getPriorityClass(item.prioridade)}">${item.prioridade || '-'}</span></td>
+      <td>${formatDate(item.dataAbertura)}</td>
+      <td>
+        <button class="btn btn-small btn-info" onclick="showHistoricoDetails(${item.idDoCaso})">
+          👁️ Ver
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+/**
+ * Atualiza as informações de paginação
+ */
+function updatePaginationInfo(data) {
+  const pageInfo = $('#page-info');
+  const statPage = $('#stat-page');
+  const statTotal = $('#stat-total');
+  const statTotalPages = $('#stat-total-pages');
+  const btnPrevPage = $('#btn-prev-page');
+  const btnNextPage = $('#btn-next-page');
+  
+  if (pageInfo) {
+    pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
+  }
+  
+  if (statPage) {
+    statPage.textContent = currentPage;
+  }
+  
+  if (statTotal) {
+    statTotal.textContent = data.totalRecords || 0;
+  }
+  
+  if (statTotalPages) {
+    statTotalPages.textContent = totalPages;
+  }
+  
+  // Habilitar/desabilitar botões de paginação
+  if (btnPrevPage) {
+    btnPrevPage.disabled = currentPage <= 1;
+  }
+  
+  if (btnNextPage) {
+    btnNextPage.disabled = currentPage >= totalPages;
+  }
+}
+
+/**
+ * Aplica os filtros selecionados
+ */
+function aplicarFiltros() {
+  currentFilters = {};
+  currentPage = 1; // Reset para primeira página
+  
+  // Coletar valores dos filtros
+  const filterId = $('#filter-id');
+  const filterResumo = $('#filter-resumo');
+  const filterDescricao = $('#filter-descricao');
+  const filterCategoria = $('#filter-categoria');
+  const filterStatus = $('#filter-status');
+  const filterPrioridade = $('#filter-prioridade');
+  const filterDataInicio = $('#filter-data-inicio');
+  const filterDataFim = $('#filter-data-fim');
+  
+  if (filterId && filterId.value) {
+    currentFilters.idDoCaso = filterId.value;
+  }
+  
+  if (filterResumo && filterResumo.value.trim()) {
+    currentFilters.resumo = filterResumo.value.trim();
+  }
+  
+  if (filterDescricao && filterDescricao.value.trim()) {
+    currentFilters.descricao = filterDescricao.value.trim();
+  }
+  
+  if (filterCategoria && filterCategoria.value) {
+    currentFilters.categoria = filterCategoria.value;
+  }
+  
+  if (filterStatus && filterStatus.value) {
+    currentFilters.status = filterStatus.value;
+  }
+  
+  if (filterPrioridade && filterPrioridade.value) {
+    currentFilters.prioridade = filterPrioridade.value;
+  }
+  
+  if (filterDataInicio && filterDataInicio.value) {
+    currentFilters.dataAberturaInicio = filterDataInicio.value;
+  }
+  
+  if (filterDataFim && filterDataFim.value) {
+    currentFilters.dataAberturaFim = filterDataFim.value;
+  }
+  
+  loadHistoricoData();
+}
+
+/**
+ * Limpa todos os filtros
+ */
+function limparFiltros() {
+  currentFilters = {};
+  currentPage = 1;
+  
+  // Limpar campos de filtro
+  const filterInputs = [
+    '#filter-id', '#filter-resumo', '#filter-descricao',
+    '#filter-categoria', '#filter-status', '#filter-prioridade',
+    '#filter-data-inicio', '#filter-data-fim'
+  ];
+  
+  filterInputs.forEach(selector => {
+    const input = $(selector);
+    if (input) {
+      input.value = '';
+    }
+  });
+  
+  loadHistoricoData();
+}
+
+/**
+ * Mostra os detalhes de um chamado histórico
+ */
+async function showHistoricoDetails(idDoCaso) {
+  const token = sessionStorage.getItem('authToken');
+  const modal = $('#modal-detalhes');
+  const modalBody = $('#modal-body');
+  
+  if (!modal || !modalBody) return;
+  
+  try {
+    modalBody.innerHTML = '<div class="loading">Carregando detalhes...</div>';
+    modal.style.display = 'block';
+    
+    const response = await fetch(`/api/historico/${idDoCaso}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro ${response.status}: ${response.statusText}`);
+    }
+
+    const item = await response.json();
+    
+    modalBody.innerHTML = `
+      <div class="details-grid">
+        <div class="detail-item">
+          <strong>ID do Caso:</strong>
+          <span>${item.idDoCaso || '-'}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Tipo:</strong>
+          <span>${item.tipo || '-'}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Resumo:</strong>
+          <span>${item.resumo || '-'}</span>
+        </div>
+        <div class="detail-item full-width">
+          <strong>Descrição:</strong>
+          <div class="description-text">${item.descricao || '-'}</div>
+        </div>
+        <div class="detail-item">
+          <strong>Data de Abertura:</strong>
+          <span>${formatDate(item.dataAbertura)}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Data de Resolução:</strong>
+          <span>${formatDate(item.dataResolucao)}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Categoria:</strong>
+          <span>${item.categoria || '-'}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Status:</strong>
+          <span class="status-badge status-${getStatusClass(item.status)}">${item.status || '-'}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Prioridade:</strong>
+          <span class="priority-badge priority-${getPriorityClass(item.prioridade)}">${item.prioridade || '-'}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Atribuído a:</strong>
+          <span>${item.atribuido || '-'}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Grupo Atribuído:</strong>
+          <span>${item.grupoAtribuido || '-'}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Localização Afetada:</strong>
+          <span>${item.localizacaoAfetada || '-'}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Relatado Por:</strong>
+          <span>${item.relatadoPor || '-'}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Método Relatado:</strong>
+          <span>${item.metodoRelatado || '-'}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Categoria do Reporte:</strong>
+          <span>${item.categoriaReporte || '-'}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Última Modificação:</strong>
+          <span>${formatDate(item.ultimaModificacao)}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Usuário Final Afetado:</strong>
+          <span>${item.usuarioFinalAfetado || '-'}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Email do Usuário Final:</strong>
+          <span>${item.emailUsuarioFinal || '-'}</span>
+        </div>
+        <div class="detail-item">
+          <strong>CPF do Usuário Final:</strong>
+          <span>${item.cpfUsuarioFinal || '-'}</span>
+        </div>
+        <div class="detail-item">
+          <strong>Violação Projetada:</strong>
+          <span>${formatDate(item.violacaoProjetada)}</span>
+        </div>
+        <div class="detail-item full-width">
+          <strong>Descrição da Solução:</strong>
+          <div class="description-text">${item.descricaoSolucao || '-'}</div>
+        </div>
+      </div>
+    `;
+    
+  } catch (error) {
+    console.error('Erro ao carregar detalhes:', error);
+    modalBody.innerHTML = '<div class="error">Erro ao carregar detalhes. Tente novamente.</div>';
+    toast('Erro ao carregar detalhes do chamado.');
+  }
+}
+
+/**
+ * Carrega estatísticas do histórico
+ */
+async function loadEstatisticas() {
+  const token = sessionStorage.getItem('authToken');
+  
+  try {
+    const response = await fetch('/api/historico/estatisticas', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro ${response.status}: ${response.statusText}`);
+    }
+
+    const stats = await response.json();
+    
+    // Atualizar total de chamados
+    const statTotal = $('#stat-total');
+    if (statTotal) {
+      statTotal.textContent = stats.totalChamados || 0;
+    }
+    
+    // Preencher filtros com dados únicos
+    populateFilterOptions(stats);
+    
+  } catch (error) {
+    console.error('Erro ao carregar estatísticas:', error);
+  }
+}
+
+/**
+ * Popula as opções dos filtros com dados únicos
+ */
+function populateFilterOptions(stats) {
+  // Categorias
+  const filterCategoria = $('#filter-categoria');
+  if (filterCategoria && stats.chamadosPorCategoria) {
+    const categorias = stats.chamadosPorCategoria.map(item => item.categoria).sort();
+    categorias.forEach(categoria => {
+      const option = document.createElement('option');
+      option.value = categoria;
+      option.textContent = categoria;
+      filterCategoria.appendChild(option);
+    });
+  }
+  
+  // Status
+  const filterStatus = $('#filter-status');
+  if (filterStatus && stats.chamadosPorStatus) {
+    const statusList = stats.chamadosPorStatus.map(item => item.status).sort();
+    statusList.forEach(status => {
+      const option = document.createElement('option');
+      option.value = status;
+      option.textContent = status;
+      filterStatus.appendChild(option);
+    });
+  }
+  
+  // Prioridades
+  const filterPrioridade = $('#filter-prioridade');
+  if (filterPrioridade && stats.chamadosPorPrioridade) {
+    const prioridades = stats.chamadosPorPrioridade.map(item => item.prioridade).sort();
+    prioridades.forEach(prioridade => {
+      const option = document.createElement('option');
+      option.value = prioridade;
+      option.textContent = prioridade;
+      filterPrioridade.appendChild(option);
+    });
+  }
+}
+
+/**
+ * Funções utilitárias para o histórico
+ */
+function truncateText(text, maxLength) {
+  if (!text) return '-';
+  return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+}
+
+function formatDate(dateString) {
+  if (!dateString) return '-';
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return dateString;
+  }
+}
+
+function getStatusClass(status) {
+  if (!status) return 'default';
+  const statusLower = status.toLowerCase();
+  if (statusLower.includes('aberto') || statusLower.includes('novo')) return 'open';
+  if (statusLower.includes('andamento') || statusLower.includes('progresso')) return 'progress';
+  if (statusLower.includes('fechado') || statusLower.includes('resolvido')) return 'closed';
+  return 'default';
+}
+
+function getPriorityClass(priority) {
+  if (!priority) return 'default';
+  const priorityLower = priority.toLowerCase();
+  if (priorityLower.includes('alta') || priorityLower.includes('urgente')) return 'high';
+  if (priorityLower.includes('média') || priorityLower.includes('normal')) return 'medium';
+  if (priorityLower.includes('baixa')) return 'low';
+  return 'default';
+}
 
