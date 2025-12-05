@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS "Usuarios" (
     "SenhaHash" VARCHAR(255) NOT NULL,
     "NomeCompleto" VARCHAR(255) NOT NULL,
     "TipoUsuario" INTEGER NOT NULL DEFAULT 1,
-    "DataCriacao" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "Ativo" BOOLEAN NOT NULL DEFAULT TRUE,
+    "DataCadastro" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tabela de Histórico de Chamados
@@ -51,8 +52,8 @@ CREATE TABLE IF NOT EXISTS "HISTORICO_CHAMADOS" (
 );
 
 -- Criar usuário administrador padrão
-INSERT INTO "Usuarios" ("Email", "SenhaHash", "NomeCompleto", "TipoUsuario") 
-VALUES ('admin@historico.com', '$2a$11$8K8VQlqKZ5K5K5K5K5K5KOeJ5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K', 'Administrador do Sistema', 1)
+INSERT INTO "Usuarios" ("Email", "SenhaHash", "NomeCompleto", "TipoUsuario", "Ativo") 
+VALUES ('admin@historico.com', '$2a$11$8K8VQlqKZ5K5K5K5K5K5KOeJ5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K', 'Administrador do Sistema', 1, TRUE)
 ON CONFLICT ("Email") DO NOTHING;
 
 -- Conceder permissões ao usuário admin
