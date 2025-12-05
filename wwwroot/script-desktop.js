@@ -749,6 +749,7 @@ async function verDetalhes(idChamado) {
 
   const modal = $('#modal-detalhes');
   const modalBody = $('#modal-body');
+  const modalTitle = $('#modal-title');
   
   if (!modal || !modalBody) return;
 
@@ -769,6 +770,11 @@ async function verDetalhes(idChamado) {
 
     const chamado = await response.json();
 
+    // Atualizar título do modal
+    if (modalTitle) {
+      modalTitle.textContent = `Chamado #${chamado.idDoCaso} - ${chamado.tipo || 'Detalhes'}`;
+    }
+
     modalBody.innerHTML = `
       <div class="detail-grid">
         <div class="detail-item">
@@ -779,11 +785,11 @@ async function verDetalhes(idChamado) {
           <strong>Tipo:</strong>
           <span>${chamado.tipo || '-'}</span>
         </div>
-        <div class="detail-item">
+        <div class="detail-item full-width">
           <strong>Resumo:</strong>
           <span>${chamado.resumo || '-'}</span>
         </div>
-        <div class="detail-item">
+        <div class="detail-item full-width">
           <strong>Categoria:</strong>
           <span>${chamado.categoria || '-'}</span>
         </div>
@@ -813,11 +819,11 @@ async function verDetalhes(idChamado) {
         </div>
         <div class="detail-item full-width">
           <strong>Descrição:</strong>
-          <div class="description-box">${chamado.descricao || '-'}</div>
+          <div class="description-box">${chamado.descricao || 'Nenhuma descrição fornecida.'}</div>
         </div>
         <div class="detail-item full-width">
           <strong>Descrição da Solução:</strong>
-          <div class="description-box">${chamado.descricaoSolucao || '-'}</div>
+          <div class="description-box">${chamado.descricaoSolucao || 'Solução não documentada.'}</div>
         </div>
       </div>
     `;
