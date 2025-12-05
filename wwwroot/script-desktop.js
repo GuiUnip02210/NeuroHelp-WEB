@@ -371,7 +371,7 @@ function setupEventListeners() {
   }
 
   // Filtros com debounce para campos de texto
-  const filterInputs = ['#filter-resumo', '#filter-descricao'];
+  const filterInputs = ['#filter-id'];
   filterInputs.forEach(selector => {
     const input = $(selector);
     if (input) {
@@ -414,7 +414,16 @@ async function loadHistoricoData() {
     });
 
     if (!response.ok) {
-      throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      let errorDetails = `${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.text();
+        if (errorData) {
+          errorDetails += ` - ${errorData}`;
+        }
+      } catch (e) {
+        // Se não conseguir ler o corpo da resposta, usar apenas status
+      }
+      throw new Error(errorDetails);
     }
 
     const data = await response.json();
@@ -428,7 +437,15 @@ async function loadHistoricoData() {
 
   } catch (error) {
     console.error('Erro ao carregar dados do histórico:', error);
-    tbody.innerHTML = '<tr><td colspan="8" class="error">Erro ao carregar dados. Tente novamente.</td></tr>';
+    console.error('URL da requisição:', `${API_BASE}/api/historico-chamados?${params}`);
+    console.error('Filtros aplicados:', currentFilters);
+    
+    let errorMessage = 'Erro ao carregar dados. Tente novamente.';
+    if (error.message) {
+      errorMessage = `Erro: ${error.message}`;
+    }
+    
+    tbody.innerHTML = `<tr><td colspan="8" class="error">${errorMessage}</td></tr>`;
   }
 }
 
@@ -498,8 +515,6 @@ function aplicarFiltros() {
 
   // Coletar valores dos filtros
   const filterId = $('#filter-id');
-  const filterResumo = $('#filter-resumo');
-  const filterDescricao = $('#filter-descricao');
   const filterCategoria = $('#filter-categoria');
   const filterStatus = $('#filter-status');
   const filterPrioridade = $('#filter-prioridade');
@@ -508,14 +523,6 @@ function aplicarFiltros() {
 
   if (filterId && filterId.value) {
     currentFilters.idDoCaso = filterId.value;
-  }
-
-  if (filterResumo && filterResumo.value.trim()) {
-    currentFilters.resumo = filterResumo.value.trim();
-  }
-
-  if (filterDescricao && filterDescricao.value.trim()) {
-    currentFilters.descricao = filterDescricao.value.trim();
   }
 
   if (filterCategoria && filterCategoria.value) {
@@ -531,11 +538,35 @@ function aplicarFiltros() {
   }
 
   if (filterDataInicio && filterDataInicio.value) {
-    currentFilters.dataAberturaInicio = filterDataInicio.value;
+    // Validar formato da data
+    const dataInicio = new Date(filterDataInicio.value);
+    if (!isNaN(dataInicio.getTime())) {
+      currentFilters.dataAberturaInicio = filterDataInicio.value;
+    } else {
+      toast("Data de início inválida");
+      return;
+    }
   }
 
   if (filterDataFim && filterDataFim.value) {
-    currentFilters.dataAberturaFim = filterDataFim.value;
+    // Validar formato da data
+    const dataFim = new Date(filterDataFim.value);
+    if (!isNaN(dataFim.getTime())) {
+      currentFilters.dataAberturaFim = filterDataFim.value;
+    } else {
+      toast("Data de fim inválida");
+      return;
+    }
+  }
+
+  // Validar se data início não é maior que data fim
+  if (currentFilters.dataAberturaInicio && currentFilters.dataAberturaFim) {
+    const inicio = new Date(currentFilters.dataAberturaInicio);
+    const fim = new Date(currentFilters.dataAberturaFim);
+    if (inicio > fim) {
+      toast("Data de início não pode ser maior que data de fim");
+      return;
+    }
   }
 
   loadHistoricoData();
@@ -550,8 +581,7 @@ function limparFiltros() {
 
   // Limpar campos de filtro
   const filterInputs = [
-    '#filter-id', '#filter-resumo', '#filter-descricao',
-    '#filter-categoria', '#filter-status', '#filter-prioridade',
+    '#filter-id', '#filter-categoria', '#filter-status', '#filter-prioridade',
     '#filter-data-inicio', '#filter-data-fim'
   ];
 
@@ -608,6 +638,11 @@ function populateFilterOptions(stats) {
   // Categorias
   const filterCategoria = $('#filter-categoria');
   if (filterCategoria && stats.chamadosPorCategoria) {
+    // Limpar opções existentes (exceto a primeira)
+    while (filterCategoria.children.length > 1) {
+      filterCategoria.removeChild(filterCategoria.lastChild);
+    }
+    
     const categorias = stats.chamadosPorCategoria.map(item => item.categoria).sort();
     categorias.forEach(categoria => {
       const option = document.createElement('option');
@@ -620,6 +655,11 @@ function populateFilterOptions(stats) {
   // Status
   const filterStatus = $('#filter-status');
   if (filterStatus && stats.chamadosPorStatus) {
+    // Limpar opções existentes (exceto a primeira)
+    while (filterStatus.children.length > 1) {
+      filterStatus.removeChild(filterStatus.lastChild);
+    }
+    
     const statusList = stats.chamadosPorStatus.map(item => item.status).sort();
     statusList.forEach(status => {
       const option = document.createElement('option');
@@ -632,6 +672,11 @@ function populateFilterOptions(stats) {
   // Prioridades
   const filterPrioridade = $('#filter-prioridade');
   if (filterPrioridade && stats.chamadosPorPrioridade) {
+    // Limpar opções existentes (exceto a primeira)
+    while (filterPrioridade.children.length > 1) {
+      filterPrioridade.removeChild(filterPrioridade.lastChild);
+    }
+    
     const prioridades = stats.chamadosPorPrioridade.map(item => item.prioridade).sort();
     prioridades.forEach(prioridade => {
       const option = document.createElement('option');
