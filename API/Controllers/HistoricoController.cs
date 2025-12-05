@@ -73,18 +73,12 @@ public class HistoricoController : ControllerBase
 
             if (dataAberturaInicio.HasValue)
             {
-                var dataInicioUtc = dataAberturaInicio.Value.Kind == DateTimeKind.Unspecified 
-                    ? DateTime.SpecifyKind(dataAberturaInicio.Value, DateTimeKind.Utc)
-                    : dataAberturaInicio.Value.ToUniversalTime();
-                query = query.Where(h => h.DataAbertura >= dataInicioUtc);
+                query = query.Where(h => h.DataAbertura >= dataAberturaInicio.Value);
             }
 
             if (dataAberturaFim.HasValue)
             {
-                var dataFimUtc = dataAberturaFim.Value.Kind == DateTimeKind.Unspecified 
-                    ? DateTime.SpecifyKind(dataAberturaFim.Value, DateTimeKind.Utc)
-                    : dataAberturaFim.Value.ToUniversalTime();
-                query = query.Where(h => h.DataAbertura <= dataFimUtc);
+                query = query.Where(h => h.DataAbertura <= dataAberturaFim.Value);
             }
 
             // Aplicar paginação

@@ -427,13 +427,18 @@ async function loadHistoricoData() {
     }
 
     const data = await response.json();
+    console.log('Dados recebidos da API:', data);
+
+    // Verificar estrutura dos dados
+    const chamados = data.chamados || data.data || data || [];
+    console.log('Chamados extraídos:', chamados);
 
     // Atualizar informações de paginação
     totalPages = data.totalPages || 1;
     updatePaginationInfo(data);
 
     // Renderizar dados
-    renderHistoricoTable(data.data || []);
+    renderHistoricoTable(chamados);
 
   } catch (error) {
     console.error('Erro ao carregar dados do histórico:', error);
@@ -538,10 +543,10 @@ function aplicarFiltros() {
   }
 
   if (filterDataInicio && filterDataInicio.value) {
-    // Validar formato da data e converter para UTC
-    const dataInicio = new Date(filterDataInicio.value + 'T00:00:00.000Z');
+    // Validar formato da data
+    const dataInicio = new Date(filterDataInicio.value);
     if (!isNaN(dataInicio.getTime())) {
-      currentFilters.dataAberturaInicio = dataInicio.toISOString();
+      currentFilters.dataAberturaInicio = filterDataInicio.value;
     } else {
       toast("Data de início inválida");
       return;
@@ -549,10 +554,10 @@ function aplicarFiltros() {
   }
 
   if (filterDataFim && filterDataFim.value) {
-    // Validar formato da data e converter para UTC (fim do dia)
-    const dataFim = new Date(filterDataFim.value + 'T23:59:59.999Z');
+    // Validar formato da data
+    const dataFim = new Date(filterDataFim.value);
     if (!isNaN(dataFim.getTime())) {
-      currentFilters.dataAberturaFim = dataFim.toISOString();
+      currentFilters.dataAberturaFim = filterDataFim.value;
     } else {
       toast("Data de fim inválida");
       return;
@@ -599,8 +604,12 @@ function limparFiltros() {
  * Carrega estatísticas para popular os filtros
  */
 async function loadHistoricoStats() {
+  console.log('Carregando estatísticas...');
   const token = sessionStorage.getItem('authToken');
-  if (!token) return;
+  if (!token) {
+    console.log('Token não encontrado para estatísticas');
+    return;
+  }
 
   try {
     const response = await fetch(`${API_BASE}/api/historico-chamados/stats`, {
@@ -610,17 +619,21 @@ async function loadHistoricoStats() {
       }
     });
 
+    console.log('Resposta das estatísticas:', response.status);
+
     if (!response.ok) {
       console.error('Erro ao carregar estatísticas:', response.status);
       return;
     }
 
     const stats = await response.json();
+    console.log('Estatísticas recebidas:', stats);
 
     // Atualizar total de chamados
     const statTotal = $('#stat-total');
     if (statTotal) {
       statTotal.textContent = stats.totalChamados || 0;
+      console.log('Total de chamados atualizado:', stats.totalChamados);
     }
 
     // Preencher filtros com dados únicos
