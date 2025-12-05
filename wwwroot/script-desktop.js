@@ -72,14 +72,14 @@ function initLogin() {
     if (!email || !password) return toast("Preencha todos os campos.");
 
     try {
-      const response = await fetch(`${API_BASE}/api/usuarios/login`, {
+      const response = await fetch(`${API_BASE}/api/Usuarios/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          Email: email,
-          Senha: password
+          email: email,
+          senha: password
         })
       });
 
@@ -406,7 +406,7 @@ async function loadHistoricoData() {
       ...currentFilters
     });
 
-    const response = await fetch(`${API_BASE}/api/historico-chamados?${params}`, {
+    const response = await fetch(`${API_BASE}/api/Historico?${params}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -442,7 +442,7 @@ async function loadHistoricoData() {
 
   } catch (error) {
     console.error('Erro ao carregar dados do histórico:', error);
-    console.error('URL da requisição:', `${API_BASE}/api/historico-chamados?${params}`);
+    console.error('URL da requisição:', `${API_BASE}/api/Historico?${params}`);
     console.error('Filtros aplicados:', currentFilters);
     
     let errorMessage = 'Erro ao carregar dados. Tente novamente.';
@@ -612,7 +612,7 @@ async function loadHistoricoStats() {
   }
 
   try {
-    const response = await fetch(`${API_BASE}/api/historico-chamados/stats`, {
+    const response = await fetch(`${API_BASE}/api/Historico/estatisticas`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -756,7 +756,7 @@ async function verDetalhes(idChamado) {
     modalBody.innerHTML = '<p>Carregando detalhes...</p>';
     modal.style.display = 'block';
 
-    const response = await fetch(`${API_BASE}/api/historico-chamados/${idChamado}`, {
+    const response = await fetch(`${API_BASE}/api/Historico/${idChamado}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
