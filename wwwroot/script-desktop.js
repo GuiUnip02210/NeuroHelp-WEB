@@ -293,6 +293,7 @@ let currentPage = 1;
 let totalPages = 1;
 let pageSize = 10;
 let currentFilters = {};
+let statsLoaded = false; // Flag para evitar carregar estatísticas múltiplas vezes
 
 /**
  * Inicializa o visualizador de histórico
@@ -313,7 +314,12 @@ function initHistoricoViewer() {
   
   // Carregar dados iniciais
   loadHistoricoData();
-  loadHistoricoStats();
+  
+  // Carregar estatísticas apenas uma vez
+  if (!statsLoaded) {
+    loadHistoricoStats();
+    statsLoaded = true;
+  }
 }
 
 /**
@@ -538,10 +544,10 @@ function aplicarFiltros() {
   }
 
   if (filterDataInicio && filterDataInicio.value) {
-    // Validar formato da data
-    const dataInicio = new Date(filterDataInicio.value);
+    // Validar formato da data e converter para UTC
+    const dataInicio = new Date(filterDataInicio.value + 'T00:00:00.000Z');
     if (!isNaN(dataInicio.getTime())) {
-      currentFilters.dataAberturaInicio = filterDataInicio.value;
+      currentFilters.dataAberturaInicio = dataInicio.toISOString();
     } else {
       toast("Data de início inválida");
       return;
@@ -549,10 +555,10 @@ function aplicarFiltros() {
   }
 
   if (filterDataFim && filterDataFim.value) {
-    // Validar formato da data
-    const dataFim = new Date(filterDataFim.value);
+    // Validar formato da data e converter para UTC (fim do dia)
+    const dataFim = new Date(filterDataFim.value + 'T23:59:59.999Z');
     if (!isNaN(dataFim.getTime())) {
-      currentFilters.dataAberturaFim = filterDataFim.value;
+      currentFilters.dataAberturaFim = dataFim.toISOString();
     } else {
       toast("Data de fim inválida");
       return;
