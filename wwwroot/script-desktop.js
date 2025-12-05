@@ -293,7 +293,6 @@ let currentPage = 1;
 let totalPages = 1;
 let pageSize = 10;
 let currentFilters = {};
-let statsLoaded = false; // Flag para evitar carregar estatísticas múltiplas vezes
 
 /**
  * Inicializa o visualizador de histórico
@@ -314,12 +313,7 @@ function initHistoricoViewer() {
   
   // Carregar dados iniciais
   loadHistoricoData();
-  
-  // Carregar estatísticas apenas uma vez
-  if (!statsLoaded) {
-    loadHistoricoStats();
-    statsLoaded = true;
-  }
+  loadHistoricoStats();
 }
 
 /**
@@ -641,55 +635,56 @@ async function loadHistoricoStats() {
  * Popula as opções dos filtros com dados únicos
  */
 function populateFilterOptions(stats) {
+  // Função auxiliar para popular um select sem duplicatas
+  function populateSelect(selectElement, items, defaultText) {
+    if (!selectElement || !items) return;
+    
+    // Salvar valor selecionado atual
+    const currentValue = selectElement.value;
+    
+    // Limpar todas as opções
+    selectElement.innerHTML = '';
+    
+    // Adicionar opção padrão
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = defaultText;
+    selectElement.appendChild(defaultOption);
+    
+    // Adicionar opções únicas e ordenadas
+    const uniqueItems = [...new Set(items)].sort();
+    uniqueItems.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item;
+      option.textContent = item;
+      selectElement.appendChild(option);
+    });
+    
+    // Restaurar valor selecionado se ainda existir
+    if (currentValue && uniqueItems.includes(currentValue)) {
+      selectElement.value = currentValue;
+    }
+  }
+  
   // Categorias
   const filterCategoria = $('#filter-categoria');
-  if (filterCategoria && stats.chamadosPorCategoria) {
-    // Limpar opções existentes (exceto a primeira)
-    while (filterCategoria.children.length > 1) {
-      filterCategoria.removeChild(filterCategoria.lastChild);
-    }
-    
-    const categorias = stats.chamadosPorCategoria.map(item => item.categoria).sort();
-    categorias.forEach(categoria => {
-      const option = document.createElement('option');
-      option.value = categoria;
-      option.textContent = categoria;
-      filterCategoria.appendChild(option);
-    });
+  if (stats.chamadosPorCategoria) {
+    const categorias = stats.chamadosPorCategoria.map(item => item.categoria);
+    populateSelect(filterCategoria, categorias, 'Todas as Categorias');
   }
   
   // Status
   const filterStatus = $('#filter-status');
-  if (filterStatus && stats.chamadosPorStatus) {
-    // Limpar opções existentes (exceto a primeira)
-    while (filterStatus.children.length > 1) {
-      filterStatus.removeChild(filterStatus.lastChild);
-    }
-    
-    const statusList = stats.chamadosPorStatus.map(item => item.status).sort();
-    statusList.forEach(status => {
-      const option = document.createElement('option');
-      option.value = status;
-      option.textContent = status;
-      filterStatus.appendChild(option);
-    });
+  if (stats.chamadosPorStatus) {
+    const statusList = stats.chamadosPorStatus.map(item => item.status);
+    populateSelect(filterStatus, statusList, 'Todos os Status');
   }
   
   // Prioridades
   const filterPrioridade = $('#filter-prioridade');
-  if (filterPrioridade && stats.chamadosPorPrioridade) {
-    // Limpar opções existentes (exceto a primeira)
-    while (filterPrioridade.children.length > 1) {
-      filterPrioridade.removeChild(filterPrioridade.lastChild);
-    }
-    
-    const prioridades = stats.chamadosPorPrioridade.map(item => item.prioridade).sort();
-    prioridades.forEach(prioridade => {
-      const option = document.createElement('option');
-      option.value = prioridade;
-      option.textContent = prioridade;
-      filterPrioridade.appendChild(option);
-    });
+  if (stats.chamadosPorPrioridade) {
+    const prioridades = stats.chamadosPorPrioridade.map(item => item.prioridade);
+    populateSelect(filterPrioridade, prioridades, 'Todas as Prioridades');
   }
 }
 
