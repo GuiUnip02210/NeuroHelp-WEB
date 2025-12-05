@@ -267,7 +267,7 @@ function initPasswordToggles() {
       if (targetInput) {
         if (targetInput.type === 'password') {
           targetInput.type = 'text';
-          this.textContent = '🙈';
+          this.textContent = '👀';
         } else {
           targetInput.type = 'password';
           this.textContent = '👁️';
